@@ -22,7 +22,7 @@ public class Seek : MonoBehaviour {
         switch (AIState) 
 		{
 		case "Seek":
-			SeekAI();
+			SeekAI(maxVel);
 			break;
 		case "Flee":
 			FleeAI();
@@ -30,22 +30,25 @@ public class Seek : MonoBehaviour {
 		case "Arrive":
 			ArriveAI ();
 			break;
+		case "Stop":
+			StopAI();
+			break;
 		default:
 			Debug.Log (AIState + " Is not a recognized AIState");
 			break;
 		}
         
 	}
-	void SeekAI()
+	void SeekAI(float maxV)
 	{
 		Vector3 desiredVel = Vector3.Normalize(targetUnit.transform.position - transform.position);
-		Debug.DrawLine (transform.position, transform.position + desiredVel*maxVel, Color.green);
+		Debug.DrawLine (transform.position, transform.position + desiredVel * maxV, Color.green);
 		if (Vector3.Distance(transform.position, targetUnit.transform.position) > rigidbody.velocity.magnitude)
 		{
 
 				rigidbody.AddForce(desiredVel * accelerate);
 			float mag = rigidbody.velocity.magnitude;
-			if(mag > maxVel)
+			if(mag > maxV)
 			{
 				rigidbody.velocity *= maxVel/mag;
 			}
@@ -64,20 +67,26 @@ public class Seek : MonoBehaviour {
 			}
 		}
 	}
+	void StopAI()
+	{
+		float dis = Vector3.Distance (transform.position, targetUnit.transform.position);
+		float nextpos = Vector3.Distance (transform.position, transform.position + rigidbody.velocity);
+		if (nextpos > dis) 
+		{
+						rigidbody.AddForce (rigidbody.velocity * -accelerate);
+		}
+	}
 	void ArriveAI()
 	{
 		
-		Vector3 desiredVel = Vector3.Normalize(targetUnit.transform.position - transform.position);
-
-		if (Vector3.Distance (transform.position, targetUnit.transform.position) > arriveDis) 
+		//Vector3 desiredVel = Vector3.Normalize(targetUnit.transform.position - transform.position);
+		float dis = Vector3.Distance (transform.position, targetUnit.transform.position);
+		if (dis > arriveDis) 
 		{
-			SeekAI ();
+			SeekAI (maxVel);
 		} else
 		{
-			if(Vector3.Angle(desiredVel,rigidbody.velocity) < 5)
-			   {
-				rigidbody.AddForce(desiredVel * -accelerate);
-				}
+			StopAI ();
 		}
 	}
 }

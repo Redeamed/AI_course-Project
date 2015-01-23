@@ -15,5 +15,10 @@ public class Bounds : MonoBehaviour {
 	void OnTriggerExit(Collider other)
 	{
 		other.transform.position = -other.transform.position;
+        ShipAI s = other.GetComponent<ShipAI>();
+        if (s != null)
+        {
+            s.target.transform.position = Vector3.zero;
+        }
 	}
 }

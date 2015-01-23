@@ -46,8 +46,10 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Bounds.cs" />
-     <Compile Include="Assets\Seek.cs" />
+     <Compile Include="Assets\Scripts\Behaviors\ShipAI.cs" />
+     <Compile Include="Assets\Scripts\Bounds.cs" />
+     <Compile Include="Assets\Scripts\UnitManager.cs" />
+     <Compile Include="Assets\TargetAI.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.1/UnityEngine.UI.dll</HintPath>
  </Reference>

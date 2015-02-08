@@ -20,16 +20,7 @@ public class FireBehavior : MonoBehaviour {
         {
 
             StartCoroutine(messages[0].name);
-            /*
-            switch (messages[0].arguments.Count) 
-            {
-            case 0:
-            StartCoroutine(messages[0].name);
-            break;
-                default:
-            Debug.Log("Total Arguments unaccounted for" + this.name);
-            break;
-        }*/
+           
             messages.Remove(messages[0]);
         }
         if (count > 0)

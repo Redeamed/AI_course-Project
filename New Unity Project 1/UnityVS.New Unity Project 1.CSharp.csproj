@@ -54,16 +54,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\AstroidManager.cs" />
-    <Compile Include="Assets\ProjectileScript.cs" />
+    <Compile Include="Assets\CameraController.cs" />
+    <Compile Include="Assets\Scripts\AstroidManager.cs" />
     <Compile Include="Assets\Scripts\Behaviors\FireBehavior.cs" />
     <Compile Include="Assets\Scripts\Behaviors\ShipAI.cs" />
     <Compile Include="Assets\Scripts\Bounds.cs" />
+    <Compile Include="Assets\Scripts\ProjectileScript.cs" />
     <Compile Include="Assets\Scripts\TargetAI.cs" />
     <Compile Include="Assets\Scripts\UnitCluster.cs" />
     <Compile Include="Assets\Scripts\UnitManager.cs" />
-    <Compile Include="Assets\astroidCode.cs" />
-    <Compile Include="Assets\scr_Message.cs" />
+    <Compile Include="Assets\Scripts\astroidCode.cs" />
+    <Compile Include="Assets\Scripts\scr_Message.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2013\UnityVS.CSharp.targets" />
 </Project>

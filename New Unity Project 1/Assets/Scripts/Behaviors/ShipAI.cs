@@ -3,34 +3,55 @@ using System.Collections;
 using System.Collections.Generic;
 public class ShipAI : MonoBehaviour
 {
+    public float max_Health = 5;
+    float health;
     Vector3 desDir, curVel;
     float desSpeed = 0.0f, curSpeed = 0.0f;
     public float maxSpeed = 2.0f, acceleration = 0.1f, slowingRadius = 5.0f;
     public GameObject moveTarget, fleeTarget,target;
     public List<GameObject> avoidTarget;
+    public GameObject myCluster;
     public string behaviors = "Seek";
-    float radar = .1f;
     Ray colCheck;
     RaycastHit hit;
     scr_Message fireMessage;
     FireBehavior fireBehavior;
 
+    List<scr_Message> messages;
+
     void Start() 
-    { 
+    {
+        health = max_Health;
         colCheck = new Ray(transform.position, transform.position + (transform.forward));
         avoidTarget = new List<GameObject>();
+
+        messages = new List<scr_Message>();
 
         fireMessage = gameObject.AddComponent<scr_Message>();
         fireMessage.name = "Fire";
         fireBehavior = gameObject.GetComponent<FireBehavior>();
     }
+    public void AddMessage(scr_Message message)
+    {
+        messages.Add(message);
+    }
+    public void PriorityMessage(scr_Message message)
+    {
+        messages.Insert(0, message);
+    }
+    void doMessage()
+    {
+        if (messages.Count > 0)
+        {
 
+            StartCoroutine(messages[0].name);
+            messages.Remove(messages[0]);
+        }
+    }
     void Update()
     {
-        if (fireBehavior == true)
-        {
-            fireBehavior.addMessage(fireMessage);
-        }
+        
+        
 
 
         Calculate();
@@ -38,7 +59,7 @@ public class ShipAI : MonoBehaviour
         if (Physics.Raycast(colCheck, out hit,5))
         {
             if (hit.transform.gameObject == moveTarget) { return; }
-            avoidTarget.Add(hit.transform.gameObject);
+            AvoidAdd(hit.transform.gameObject);
             Debug.DrawRay(colCheck.origin, colCheck.direction * 5, Color.red);
         }
         else
@@ -57,16 +78,15 @@ public class ShipAI : MonoBehaviour
     {
         desDir = Vector3.Normalize(moveTarget.transform.position- transform.position);
         transform.LookAt(transform.position + curVel);
-        //Vector3 rayDir = new Vector3();
-        //rayDir.y = (transform.forward.y * Mathf.Cos(radar) - (transform.forward.z * Mathf.Sin(radar)));
-        //rayDir.z = (transform.forward.y * Mathf.Sin(radar) + (transform.forward.z * Mathf.Cos(radar)));
+        
         colCheck = new Ray(transform.position, transform.forward);
-        radar += 1f;
+
     }
     void ApplySteering() 
     {
         rigidbody.velocity = curVel;
     }
+
     void Seek(float mod)
     {
 
@@ -78,10 +98,10 @@ public class ShipAI : MonoBehaviour
         curSpeed = curVel.magnitude;
         if (curSpeed > maxSpeed) { curVel *= maxSpeed / curSpeed; }
     }
+
     void Flee(float mod)
     {
-       // if ((fleeTarget.transform.position - transform.position).magnitude > 5) { return; }
-        Vector3 fleeDir = Vector3.Normalize(fleeTarget.transform.position - transform.position);
+      Vector3 fleeDir = Vector3.Normalize(fleeTarget.transform.position - transform.position);
 
         Vector3 desVel = ((fleeDir * maxSpeed) * mod);
         if (rigidbody.velocity != desVel)
@@ -91,6 +111,7 @@ public class ShipAI : MonoBehaviour
         curSpeed = curVel.magnitude;
         if (curSpeed > maxSpeed) { curVel *= maxSpeed / curSpeed; }
     }
+
     void Avoid(float mod)
     {
         List<GameObject> removeTargets = new List<GameObject>();
@@ -117,8 +138,15 @@ public class ShipAI : MonoBehaviour
             avoidTarget.Remove(remove);
         }
     }
+
     void Arrive(float mod)
     {
+        if (behaviors == "Arrive" && target == moveTarget)
+        {
+            FindTarget();
+        }
+        moveTarget.transform.position = target.transform.position;
+
         float dis = (moveTarget.transform.position - transform.position).magnitude;
         if ( dis > slowingRadius) 
         { Seek(mod); }
@@ -135,6 +163,19 @@ public class ShipAI : MonoBehaviour
 
         }
     }
+    void Attack(float mod)
+    {
+        if (target == moveTarget || target == null)
+        {
+            FindTarget();
+        }
+        Arrive(mod);
+        Vector3 tempVec = moveTarget.transform.position - transform.position;
+        if (Vector3.Angle(transform.forward, tempVec) <= 5)
+        {
+            fireBehavior.addMessage(fireMessage);
+        }
+    }
     void Wander(float mod) 
     {
         if (target.transform.parent != null)
@@ -148,12 +189,41 @@ public class ShipAI : MonoBehaviour
             Arrive(mod);
         }
     }
+
+
+    void FindTarget() 
+    {
+        foreach (UnitCluster.ClusterStatus cs in myCluster.GetComponent<UnitCluster>().clusterStatus)
+        {
+            if (cs.ally)
+            {
+                continue;
+            }
+            else
+            {
+                GameObject[] allyArray = cs.cluster.GetComponent<UnitCluster>().units;
+                int possibleTargets = allyArray.Length;
+                target = allyArray[Random.Range(0, possibleTargets - 1)];
+            }
+        }
+    }
     void onTriggerEnter(Collider other)
     {
-        ShipAI otherAI = other.gameObject.GetComponent<ShipAI>();
+        AvoidAdd(other.gameObject);
+    }
+    void AvoidAdd(GameObject avoid)
+    {
+        ShipAI otherAI = avoid.GetComponent<ShipAI>();
         if (otherAI.moveTarget == this.gameObject)
         {
-            this.fleeTarget = other.gameObject;
+            this.fleeTarget = avoid.gameObject;
+        }
+        else
+        {
+            if (avoidTarget.Contains(avoid.gameObject) == false && avoid.gameObject != fireBehavior.projectile)
+            {
+                avoidTarget.Add(avoid.gameObject);
+            }
         }
     }
 }

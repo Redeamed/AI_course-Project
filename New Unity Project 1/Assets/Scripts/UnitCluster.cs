@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class UnitCluster : MonoBehaviour {
-     struct ClusterStatus
+     public struct ClusterStatus
     {
         public GameObject cluster;
         public bool ally;
@@ -12,7 +12,7 @@ public class UnitCluster : MonoBehaviour {
     public GameObject[] units;
     public int numUnits, spawnRange = 20;
 
-     List<ClusterStatus> clusterStatus;
+    public  List<ClusterStatus> clusterStatus;
 	// Use this for initialization
 	void Start () 
 	{
@@ -22,6 +22,7 @@ public class UnitCluster : MonoBehaviour {
         for (int i = 0; i < numUnits; ++i) 
 		{
             units[i] = Instantiate(ship, transform.position + (Random.onUnitSphere * spawnRange), Quaternion.identity) as GameObject;
+            units[i].GetComponent<ShipAI>().myCluster = this.gameObject;
 		}
         foreach (GameObject cluster in UnitManager.singleton.unitClusters)
         {

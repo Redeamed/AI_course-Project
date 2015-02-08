@@ -1,32 +1,51 @@
 ﻿using UnityEngine;
 using System.Collections;
-
+using System.Collections.Generic;
 public class ShipAI : MonoBehaviour
 {
     Vector3 desDir, curVel;
     float desSpeed = 0.0f, curSpeed = 0.0f;
     public float maxSpeed = 2.0f, acceleration = 0.1f, slowingRadius = 5.0f;
-    public GameObject moveTarget, fleeTarget,target, avoidTarget;
+    public GameObject moveTarget, fleeTarget,target;
+    public List<GameObject> avoidTarget;
     public string behaviors = "Seek";
-
+    float radar = .1f;
     Ray colCheck;
     RaycastHit hit;
-    void Start() { colCheck = new Ray(transform.position, transform.position + (transform.forward)); }
+    scr_Message fireMessage;
+    FireBehavior fireBehavior;
+
+    void Start() 
+    { 
+        colCheck = new Ray(transform.position, transform.position + (transform.forward));
+        avoidTarget = new List<GameObject>();
+
+        fireMessage = gameObject.AddComponent<scr_Message>();
+        fireMessage.name = "Fire";
+        fireBehavior = gameObject.GetComponent<FireBehavior>();
+    }
+
     void Update()
     {
+        if (fireBehavior == true)
+        {
+            fireBehavior.addMessage(fireMessage);
+        }
+
+
         Calculate();
         StartCoroutine(behaviors, 1);
         if (Physics.Raycast(colCheck, out hit,5))
         {
             if (hit.transform.gameObject == moveTarget) { return; }
-            avoidTarget = hit.transform.gameObject;
+            avoidTarget.Add(hit.transform.gameObject);
             Debug.DrawRay(colCheck.origin, colCheck.direction * 5, Color.red);
         }
         else
         {
             Debug.DrawRay(colCheck.origin, colCheck.direction * 5, Color.white);
         }
-        if (avoidTarget != null)
+        if (avoidTarget.Count > 0)
         {
             StartCoroutine("Avoid", 1);
         }
@@ -38,7 +57,11 @@ public class ShipAI : MonoBehaviour
     {
         desDir = Vector3.Normalize(moveTarget.transform.position- transform.position);
         transform.LookAt(transform.position + curVel);
+        //Vector3 rayDir = new Vector3();
+        //rayDir.y = (transform.forward.y * Mathf.Cos(radar) - (transform.forward.z * Mathf.Sin(radar)));
+        //rayDir.z = (transform.forward.y * Mathf.Sin(radar) + (transform.forward.z * Mathf.Cos(radar)));
         colCheck = new Ray(transform.position, transform.forward);
+        radar += 1f;
     }
     void ApplySteering() 
     {
@@ -70,13 +93,16 @@ public class ShipAI : MonoBehaviour
     }
     void Avoid(float mod)
     {
-        if ((avoidTarget.transform.position - transform.position).magnitude > 8)
+        List<GameObject> removeTargets = new List<GameObject>();
+        foreach(GameObject avoid in avoidTarget)
         {
-            avoidTarget = null;
+            if (avoid == null || (avoid.transform.position - transform.position).magnitude > 8  )
+        {
+            removeTargets.Add(avoid);
+            continue; 
         }
-        if (!avoidTarget) { return; }
 
-        Vector3 fleeDir = Vector3.Normalize(avoidTarget.transform.position - transform.position);
+            Vector3 fleeDir = Vector3.Normalize(avoid.transform.position - transform.position);
 
         Vector3 desVel = ((fleeDir * maxSpeed) * mod);
         if (rigidbody.velocity != desVel)
@@ -85,7 +111,11 @@ public class ShipAI : MonoBehaviour
         }
         curSpeed = curVel.magnitude;
         if (curSpeed > maxSpeed) { curVel *= maxSpeed / curSpeed; }
-
+    }
+        foreach (GameObject remove in removeTargets)
+        {
+            avoidTarget.Remove(remove);
+        }
     }
     void Arrive(float mod)
     {

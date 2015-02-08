@@ -27,7 +27,7 @@ public class AstroidManager : MonoBehaviour {
 
     public void NewAstroid() 
     {
-        Vector3 pos = new Vector3(Random.Range(-100, -200), Random.Range(-50, 50), Random.Range(-25, 25));
+        Vector3 pos = new Vector3(Random.Range(0, -100), Random.Range(-50, 50), Random.Range(-25, 25));
         GameObject tempAstroid = Instantiate(astroid,pos,Quaternion.identity) as GameObject;
         tempAstroid.rigidbody.velocity = new Vector3(Random.Range(3,7), 0, 0);
         float scale = Random.Range(1,5);
